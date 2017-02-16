@@ -1,0 +1,306 @@
+
+
+
+
+<html>
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>TicTacToe - JavaScript</title>
+  
+<style>
+body {font-family: sans-serif;}
+#ttt {background: #f9f9f9; margin: 40px auto; width: 400px; height: 400px; padding: 5px 0 2px 5px; border: 1px solid #eee; box-shadow: 0px 15px 10px -15px rgba(0,0,0,0.2);}
+#ttt li {float: left; width: 97px; height: 97px; border: 1px solid #ddd; background: #fff;}
+#ttt li[class] {text-shadow: 0 2px 1px rgba(255,255,255,1), 0 -2px 1px rgba(0,0,0,0.05);}
+
+#ttt .X, #X {background: #d9f4ff;}
+#ttt .O, #O {background: #ffedd9;}
+.X:before, .O:before, .T:before { display: block; text-align: center; font-size: 62px; width: 97px; line-height: 97px;}
+#X:before, #O:before, #T:before { color: #777; margin-right: 10px;}
+.score {padding: 5px; font-family: Consolas, monospace; font-weight: bold; font-size: 22px;}
+.X:before, #X:before {content: "X";}
+.O:before, #O:before {content: "O";}
+.T:before, #T:before {content: "Tie";}
+</style>
+ <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+ <script>
+ var gameLibs = (function() {	
+    var playerNbr = 1;
+	
+	var publicFunctions = {
+    gamePlayers: function(_players) {
+      	if (_players === 1 ) {
+		    gameLibs.setPlayers(1);$('#twoPlayer').hide();$('#onePlayer').show();
+		} else {
+		   gameLibs.setPlayers(2);$('#twoPlayer').show();$('#onePlayer').hide();
+		}
+    },
+	
+    setPlayers: function(number) {
+	  playerNbr = number;
+	},
+	
+	getPlayers:function() { return playerNbr; }
+  };
+    return publicFunctions;
+})();
+ </script>
+ 
+</head>
+<body>
+<span class="score" id="X" >0</span>
+<span class="score" id="O" >0</span>
+<span class="score" id="T" >0</span><hr>
+<div id="twoPlayer">Current game is a Two Player game? <input type="button" value="Click for 1 player" onClick="gameLibs.gamePlayers(1);"><br> </div>
+<div id="onePlayer">Current game is a One Player game? <input type="button" value="Click for 2 player" onClick="gameLibs.gamePlayers(2);"><br> </div>
+
+<div id="ttt">
+    <ol>
+        <li></li> <li></li> <li></li>
+		
+        <li></li> <li></li> <li></li>
+        
+		<li></li> <li></li> <li></li>
+    </ol>
+</div>
+
+
+<script type='text/javascript'>
+(function TicTacToe() {
+    var board = $('#ttt'),
+        boxes = board.find('li'),
+        map = { X: '', O: '' },
+        players = {
+            X: { score: 0  },
+            O: { score: 0 },
+            T: { score: 0 }
+        },
+        active = 'X',
+        turns = 0,
+        wins = ['012', '345', '678', '036', '147', '258', '048', '246'];
+
+    function turn() {
+        ++turns;
+        var box = $(this),
+            a = map[active];
+        box.addClass(active);
+        map[active] += box.index();
+        map[active] = map[active].split('').sort().join('');
+
+        checkTurn();
+    }
+
+    function checkTurn() {
+        var over = false;
+        $.each(wins, function (i, win) {
+            var winning = new RegExp('.?' + win[0] + '.?' + win[1] + '.?' + win[2] + '.?');
+            if (winning.test(map[active])) over = true;
+        });
+
+        if (over) { // matched a winning combination
+            gameOver(active);
+        } else {
+            if (turns === 9) { // tie
+                gameOver();
+            } else { // prepare next turn
+                active = (active === 'X') ? 'O' : 'X';
+                if (gameLibs.getPlayers() === 1 && active === 'O') {
+                    runComputerTurn();
+                }
+            }
+        }
+    }
+
+    function setComputerMove(number) {
+        $("li").each(function (index) {
+            if (index == number) {
+                $(this).addClass('O');
+            }
+        });
+        map[active] += number;
+        map[active] = map[active].split('').sort().join('');
+    }
+
+    function testMove(oLoc, loc) {
+        if (oLoc.indexOf(loc.toString()) < 0) {
+            setComputerMove(loc);
+            return true;
+        }
+        return false;
+    }
+
+    function determineMove(xMoves, oLoc) {
+        var foundMove = false;
+
+        for (var i = 0; i < xMoves.length; i++) {
+            if (foundMove) {
+                return true;
+            }
+            switch (xMoves[i]) {
+            case "01":
+            case "46":
+            case "58":
+                foundMove = testMove(oLoc, 2);
+                break;
+            case "02":
+            case "47":
+                foundMove = testMove(oLoc, 1);
+                break;
+            case "03":
+            case "24":
+            case "78":
+                foundMove = testMove(oLoc, 6);
+                break;
+            case "06":
+            case "45":
+                foundMove = testMove(oLoc, 3);
+                break;
+            case "04":
+            case "25":
+            case "67":
+                    foundMove = testMove(oLoc, 8);
+                break;
+            case "08":
+            case "35":
+            case "17":
+                foundMove = testMove(oLoc, 4);
+                break;
+            case "12":
+            case "36":
+                foundMove = testMove(oLoc, 0);
+                break;
+            case "14":
+            case "68":
+                foundMove = testMove(oLoc, 7);
+                break;
+            case "28":
+            case "34":
+                foundMove = testMove(oLoc, 5);
+                break;
+            case "26":
+                if (turns <= 4)  {
+                    setComputerMove(3);
+                    foundMove = true;
+                } else {
+                    foundMove = testMove(oLoc, 4);
+                }
+                break;
+            case "48":
+                if (turns <= 4) {
+                    setComputerMove(2);
+                    foundMove = true;
+                } else {
+                    foundMove = testMove(oLoc, 0);
+                }
+                break;
+            case "56":
+	    case "27":
+            case "57":
+                if (turns <= 4) {
+                    foundMove = testMove(oLoc, 8);
+                }
+                break;
+            case "07":
+                if (turns <= 6) {
+                    foundMove = testMove(oLoc, 6);
+                }
+                break;
+            }
+        }
+        return foundMove;
+    }
+
+    function findMoves(xBoxes) {
+
+        var moves = [];
+        $.each(xBoxes, function () {
+            var theList = [];
+
+            switch (this[0]) {
+              case "0": theList = ["1", "2", "3", "6", "4", "8", "7"]; break;
+              case "1": theList = ["2", "4"]; break;
+              case "2": theList = ["4", "5", "6", "8", "7"]; break;
+              case "3": theList = ["4", "6"]; break;
+              case "4": theList = ["5", "6", "7", "8"]; break;
+              case "5": theList = ["8", "7", "6"]; break;
+              case "6": theList = ["7", "8"]; break;
+              case "7": theList = ["8"]; break;
+            }
+
+            for (var i = 0; i < theList.length; i++) {
+                if (xBoxes.indexOf(theList[i]) != -1) {
+                    moves.push(this[0] + theList[i]);
+                }
+            }
+        });
+        return moves;
+    }
+
+    function runComputerTurn() {
+        ++turns;
+        var xLoc = map['X'];
+        var oLoc = map['O'];
+        if (turns === 2) {
+            if (xLoc != 4) {
+                setComputerMove(4);
+            } else {
+                setComputerMove(0);
+            }
+            checkTurn();
+        } else {
+            // can computer win.
+            var oBoxes = map['O'].split('').sort();
+            var foundMove = false;
+            foundMove = determineMove(findMoves(oBoxes), xLoc);
+
+            if (!foundMove) {
+                var xBoxes = map['X'].split('').sort();
+                foundMove = determineMove(findMoves(xBoxes), oLoc);
+
+                if (!foundMove) {
+                    $("li").each(function (index) {
+                        if ($(this).hasClass('O')) { /* do nothing */ } else if ($(this).hasClass('X')) { /* do nothing */ } else {
+                            setComputerMove(index);
+                            return false;
+                        }
+                    });
+                }
+            }
+            checkTurn();
+
+        }
+    }
+
+    function gameOver(winner) {
+        if (winner) {
+            alert(winner + ' Wins! :-D');
+            $('#' + active).text(++players[active].score);
+        } else {
+            $('#' + 'T').text(++players['T'].score);
+            alert('Well, it\'s a tie.');
+        }
+        newGame();
+    }
+
+    function newGame() {
+        map['X'] = '';
+        map['O'] = '';
+        turns = 0;
+        active = 'X';
+        boxes.removeAttr('class');
+    }
+
+    function init() {
+        board.delegate('li:not([class])', 'click', turn);
+        gameLibs.gamePlayers(1);
+    }
+
+    $(init);
+})();
+
+
+
+</script>
+</body>
+</html>
